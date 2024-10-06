@@ -1,18 +1,15 @@
-import flatpickr from "flatpickr";
-import "flatpickr/dist/flatpickr.min.css";
-import iziToast from "izitoast";
-import "izitoast/dist/css/iziToast.min.css";
-
+import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
+import iziToast from 'izitoast';
+import 'izitoast/dist/css/iziToast.min.css';
 const startBtn = document.querySelector('[data-start]');
 const daysEl = document.querySelector('[data-days]');
 const hoursEl = document.querySelector('[data-hours]');
 const minutesEl = document.querySelector('[data-minutes]');
 const secondsEl = document.querySelector('[data-seconds]');
-let userSelectedDate = null; // Zmienna przechowująca wybraną datę
-let timerInterval = null; // Zmienna do przechowywania identyfikatora interwału
-let isTimerRunning = false; // Flaga do sprawdzania, czy timer już działa
-
-// Konfiguracja flatpickr
+let userSelectedDate = null;
+let timerInterval = null;
+let isTimerRunning = false;
 const options = {
   enableTime: true,
   time_24hr: true,
@@ -20,7 +17,6 @@ const options = {
   minuteIncrement: 1,
   onClose(selectedDates) {
     userSelectedDate = selectedDates[0];
-    // Sprawdzamy, czy wybrana data jest w przyszłości
     if (userSelectedDate < new Date()) {
       iziToast.error({
         title: 'Error',
@@ -28,49 +24,40 @@ const options = {
       });
       startBtn.disabled = true;
     } else {
-      startBtn.disabled = isTimerRunning; // Aktywujemy przycisk "Start" tylko, jeśli timer nie działa
+      startBtn.disabled = isTimerRunning;
     }
   },
 };
-
-// Inicjalizacja flatpickr na polu input
-flatpickr("#datetime-picker", options);
-
-// Obsługa kliknięcia przycisku "Start"
-startBtn.addEventListener("click", () => {
-  if (isTimerRunning) return; // Jeśli timer już działa, nie rób nic
-
+flatpickr('#datetime-picker', options);
+startBtn.addEventListener('click', () => {
+  if (isTimerRunning) return;
   if (timerInterval) {
-    clearInterval(timerInterval); // Jeśli timer już działa, zatrzymaj go
+    clearInterval(timerInterval);
   }
-
-  isTimerRunning = true; // Ustaw flagę, że timer jest uruchomiony
-  startBtn.disabled = true; // Dezaktywujemy przycisk po starcie
+  isTimerRunning = true;
+  startBtn.disabled = true;
   timerInterval = setInterval(() => {
     const currentTime = new Date();
-    const timeLeft = userSelectedDate - currentTime; // Obliczamy pozostały czas
+    const timeLeft = userSelectedDate - currentTime;
 
     if (timeLeft <= 0) {
-      clearInterval(timerInterval); // Zatrzymujemy timer, gdy dojdzie do końca
+      clearInterval(timerInterval);
       iziToast.success({
         title: 'Success',
         message: 'Countdown finished!',
       });
-      updateTimerUI(0); // Resetujemy licznik
-      isTimerRunning = false; // Resetujemy flagę po zakończeniu
+      updateTimerUI(0);
+      isTimerRunning = false;
       return;
     }
-
     const time = convertMs(timeLeft);
-    updateTimerUI(time); // Aktualizujemy interfejs użytkownika
+    updateTimerUI(time);
   }, 1000);
 });
-
-// Funkcja przeliczająca milisekundy na dni, godziny, minuty i sekundy
 function convertMs(ms) {
   const second = 1000;
-  const minute = second * 60;
-  const hour = minute * 60;
+  const minute = second * 59;
+  const hour = minute * 59;
   const day = hour * 24;
 
   const days = Math.floor(ms / day);
@@ -80,22 +67,12 @@ function convertMs(ms) {
 
   return { days, hours, minutes, seconds };
 }
-
-// Funkcja aktualizująca interfejs licznika
 function updateTimerUI({ days, hours, minutes, seconds }) {
   daysEl.textContent = addLeadingZero(days);
   hoursEl.textContent = addLeadingZero(hours);
   minutesEl.textContent = addLeadingZero(minutes);
   secondsEl.textContent = addLeadingZero(seconds);
 }
-
-// Funkcja dodająca wiodące zero, jeśli liczba ma mniej niż dwa znaki
 function addLeadingZero(value) {
   return String(value).padStart(2, '0');
 }
-
-// Użytkownik wybiera datę za pomocą flatpickr.
-// Jeśli data jest w przeszłości, wyświetli się powiadomienie o błędzie za pomocą iziToast, a przycisk „Start” pozostanie nieaktywny.
-// Po wybraniu daty w przyszłości, użytkownik może uruchomić licznik.
-// Licznik aktualizuje dni, godziny, minuty i sekundy co sekundę.
-// Gdy czas się skończy, timer zatrzymuje się i wyświetla powiadomienie o sukcesie.
